@@ -1,0 +1,161 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+
+type FormState = {
+  email: string;
+  password: string;
+  remember: boolean;
+};
+
+export default function LoginPage() {
+  const router = useRouter();
+
+  const [form, setForm] = useState<FormState>({
+    email: "",
+    password: "",
+    remember: true,
+  });
+
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    general?: string;
+  }>({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (errors.general) setErrors((p) => ({ ...p, general: undefined }));
+  }, [form.email, form.password]);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  }
+
+  function validate() {
+    const next: typeof errors = {};
+
+    if (!form.email.trim()) next.email = "Email je obavezan.";
+    else if (!form.email.includes("@")) next.email = "Unesi ispravan email.";
+
+    if (!form.password) next.password = "Lozinka je obavezna.";
+    else if (form.password.length < 6) next.password = "Lozinka mora imati bar 6 karaktera.";
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setIsSubmitting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 600));
+      localStorage.setItem("demo_auth", "true");
+      router.push("/animals");
+    } catch {
+      setErrors((p) => ({ ...p, general: "Došlo je do greške. Pokušaj ponovo." }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen w-full flex items-center justify-center px-4">
+      <div className="absolute inset-0 -z-10 bg-neutral-50" />
+      <div className="absolute inset-0 -z-10 opacity-60 [background:radial-gradient(circle_at_20%_20%,rgba(139,92,246,0.18),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(59,130,246,0.16),transparent_40%),radial-gradient(circle_at_50%_90%,rgba(16,185,129,0.12),transparent_45%)]" />
+
+      <section className="w-full max-w-sm">
+        <div className="rounded-2xl bg-white/90 backdrop-blur border border-neutral-200 shadow-xl p-7">
+          <h1 className="text-4xl font-extrabold leading-tight text-neutral-900">
+            Zdravo,
+            <br />
+            Dobrodošao/la nazad
+          </h1>
+
+          <p className="mt-2 text-sm text-neutral-600">
+            Uloguj se da bi pregledao/la životinje i podneo/la zahtev za udomljavanje.
+          </p>
+
+          {errors.general && (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {errors.general}
+            </div>
+          )}
+
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+            <Input
+              label="Email adresa"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="npr. ime@gmail.com"
+              error={errors.email}
+              required
+            />
+
+            <Input
+              label="Lozinka"
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Unesi lozinku"
+              error={errors.password}
+              required
+            />
+
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center gap-2 text-sm text-neutral-700">
+                <input
+                  type="checkbox"
+                  name="remember"
+                  checked={form.remember}
+                  onChange={handleChange}
+                  className="h-4 w-4 rounded border-neutral-300 text-violet-600 focus:ring-violet-500"
+                />
+                Zapamti me
+              </label>
+
+              <button
+                type="button"
+                className="text-sm font-medium text-neutral-600 hover:text-neutral-900"
+                onClick={() => alert("Reset lozinke")}
+              >
+                Zaboravljena lozinka?
+              </button>
+            </div>
+
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Prijavljivanje..." : "Prijavi se"}
+            </Button>
+
+            <div className="flex items-center gap-3 py-2">
+              <div className="h-px flex-1 bg-neutral-200" />
+              
+            </div>
+
+
+            <p className="pt-2 text-center text-sm text-neutral-600">
+              Nemaš nalog?{" "}
+              <button
+                type="button"
+                className="font-semibold text-violet-700 hover:text-violet-800"
+                onClick={() => router.push("/register")}
+              >
+                Registruj se
+              </button>
+            </p>
+          </form>
+        </div>
+      </section>
+    </main>
+  );
+}
