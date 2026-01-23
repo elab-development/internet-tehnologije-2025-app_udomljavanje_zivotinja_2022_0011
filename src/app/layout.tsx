@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import Navbar from "@/components/ui/Navbar";
 
 export const metadata: Metadata = {
   title: "Udomljavanje životinja",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="sr">
-      <body>{children}</body>
+      <body>
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

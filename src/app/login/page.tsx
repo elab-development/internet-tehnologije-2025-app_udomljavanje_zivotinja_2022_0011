@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "@/components/ui/Button";
+import Image from "next/image";
 import Input from "@/components/ui/Input";
 
 type FormState = {
@@ -29,8 +29,10 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (errors.general) setErrors((p) => ({ ...p, general: undefined }));
-  }, [form.email, form.password]);
+    if (errors.general) {
+      setErrors((p) => ({ ...p, general: undefined }));
+    }
+  }, [form.email, form.password, errors.general]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type, checked } = e.target;
@@ -73,6 +75,17 @@ export default function LoginPage() {
 
       <section className="w-full max-w-sm">
         <div className="rounded-2xl bg-white/90 backdrop-blur border border-neutral-200 shadow-xl p-7">
+          {/* LOGO IZNAD NASLOVA */}
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/logofinal.png"
+              alt="ResQ Collective logo"
+              width={120}
+              height={120}
+              priority
+            />
+          </div>
+
           <h1 className="text-4xl font-extrabold leading-tight text-neutral-900">
             Zdravo,
             <br />
@@ -133,21 +146,20 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <Button type="submit" disabled={isSubmitting}>
+            {/* DUGME – ISTA NEBO PLAVA BOJA #C3E7FD */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full rounded-xl py-3 font-semibold transition bg-[#C3E7FD] hover:bg-[#AEDCF9] text-neutral-800 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
               {isSubmitting ? "Prijavljivanje..." : "Prijavi se"}
-            </Button>
-
-            <div className="flex items-center gap-3 py-2">
-              <div className="h-px flex-1 bg-neutral-200" />
-              
-            </div>
-
+            </button>
 
             <p className="pt-2 text-center text-sm text-neutral-600">
               Nemaš nalog?{" "}
               <button
                 type="button"
-                className="font-semibold text-violet-700 hover:text-violet-800"
+                className="font-semibold text-sky-500 hover:text-sky-600"
                 onClick={() => router.push("/register")}
               >
                 Registruj se
