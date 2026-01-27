@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Korisnik {
+  id        Int      @id @default(autoincrement())
+  ime       String
+  prezime   String
+  email     String   @unique
+  lozinka   String
+  uloga     String
+
+  zivotinje           Zivotinja[]
+  zahteviUsvajanje    ZahtevZaUsvajanje[]
+  zahteviVolontera    ZahtevZaVolontera[]
+}
+
+model Zivotinja {
+  id          Int      @id @default(autoincrement())
+  ime         String
+  vrsta       String
+  starost     Int
+  pol         String
+  lokacija    String
+  status      String
+  opis        String
+  postavljeno DateTime @default(now())
+
+  korisnikId  Int
+  korisnik    Korisnik @relation(fields: [korisnikId], references: [id])
+
+  zahteviUsvajanje ZahtevZaUsvajanje[]
+}
+
+model ZahtevZaUsvajanje {
+  id        Int      @id @default(autoincrement())
+  kontakt   String
+  motivacija String
+  status    String
+  vremePodnosenjaZahteva DateTime @default(now())
+  komentarVolontera String?
+
+  korisnikId  Int
+  korisnik    Korisnik @relation(fields: [korisnikId], references: [id])
+
+  zivotinjaId Int
+  zivotinja   Zivotinja @relation(fields: [zivotinjaId], references: [id])
+
+  notifikacije Notifikacija[]
+}
+
+model ZahtevZaVolontera {
+  id        Int      @id @default(autoincrement())
+  iskustvo  String
+  motivacija String
+  status    String
+  vremePodnosenjaZahteva DateTime @default(now())
+
+  korisnikId Int
+  korisnik   Korisnik @relation(fields: [korisnikId], references: [id])
+}
+
+model Notifikacija {
+  id        Int      @id @default(autoincrement())
+  naMail    String
+  naslov    String
+  tekst     String
+  status    String
+  vremeSlanja DateTime @default(now())
+
+  zahtevId  Int
+  zahtev    ZahtevZaUsvajanje @relation(fields: [zahtevId], references: [id])
+}
+
