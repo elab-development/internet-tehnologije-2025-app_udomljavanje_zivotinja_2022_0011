@@ -23,6 +23,9 @@ model Korisnik {
   zivotinje           Zivotinja[]
   zahteviUsvajanje    ZahtevZaUsvajanje[]
   zahteviVolontera    ZahtevZaVolontera[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Zivotinja {
@@ -32,7 +35,7 @@ model Zivotinja {
   starost     Int
   pol         String
   lokacija    String
-  status      String
+  status      StatusZivotinje @default(AKTIVNA)
   opis        String
   postavljeno DateTime @default(now())
 
@@ -40,13 +43,15 @@ model Zivotinja {
   korisnik    Korisnik @relation(fields: [korisnikId], references: [id])
 
   zahteviUsvajanje ZahtevZaUsvajanje[]
+
+  updatedAt DateTime @updatedAt
 }
 
 model ZahtevZaUsvajanje {
   id        Int      @id @default(autoincrement())
   kontakt   String
   motivacija String
-  status    String
+  status    StatusZahteva @default(NA_CEKANJU)
   vremePodnosenjaZahteva DateTime @default(now())
   komentarVolontera String?
 
@@ -57,17 +62,21 @@ model ZahtevZaUsvajanje {
   zivotinja   Zivotinja @relation(fields: [zivotinjaId], references: [id])
 
   notifikacije Notifikacija[]
+
+  updatedAt DateTime @updatedAt
 }
 
 model ZahtevZaVolontera {
   id        Int      @id @default(autoincrement())
   iskustvo  String
   motivacija String
-  status    String
+  status    StatusZahteva @default(NA_CEKANJU)
   vremePodnosenjaZahteva DateTime @default(now())
 
   korisnikId Int
   korisnik   Korisnik @relation(fields: [korisnikId], references: [id])
+
+  updatedAt DateTime @updatedAt
 }
 
 model Notifikacija {
@@ -75,10 +84,31 @@ model Notifikacija {
   naMail    String
   naslov    String
   tekst     String
-  status    String
+  status    StatusNotifikacije @default(DRAFT)
   vremeSlanja DateTime @default(now())
 
   zahtevId  Int
   zahtev    ZahtevZaUsvajanje @relation(fields: [zahtevId], references: [id])
+
+  updatedAt DateTime @updatedAt
+}
+
+enum StatusZivotinje {
+  AKTIVNA
+  UDOMLJENA
+  PAUZIRANA
+}
+
+enum StatusZahteva {
+  NA_CEKANJU
+  ODOBREN
+  ODBIJEN
+  OTKAZAN
+}
+
+enum StatusNotifikacije {
+  DRAFT
+  POSLATA
+  NEUSPEŠNA
 }
 
