@@ -18,7 +18,7 @@ model Korisnik {
   prezime   String
   email     String   @unique
   lozinka   String
-  uloga     String
+  role Role @default(UDOMITELJ)
 
   zivotinje           Zivotinja[]
   zahteviUsvajanje    ZahtevZaUsvajanje[]
@@ -26,6 +26,8 @@ model Korisnik {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+
 }
 
 model Zivotinja {
@@ -110,5 +112,10 @@ enum StatusNotifikacije {
   DRAFT
   POSLATA
   NEUSPEŠNA
+}
+enum Role {
+  ADMIN
+  VOLONTER
+  UDOMITELJ
 }
 
