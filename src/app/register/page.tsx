@@ -41,11 +41,13 @@ export default function RegisterPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Kad korisnik krene da menja polja, skloni general error
   useEffect(() => {
     if (errors.general) {
       setErrors((p) => ({ ...p, general: undefined }));
     }
-  }, [form, errors.general]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.ime, form.prezime, form.datumRodjenja, form.email, form.password, form.confirmPassword, form.acceptTerms]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type, checked } = e.target;
@@ -63,16 +65,12 @@ export default function RegisterPage() {
     else if (!form.email.includes("@")) next.email = "Unesi ispravan email.";
 
     if (!form.password) next.password = "Lozinka je obavezna.";
-    else if (form.password.length < 6)
-      next.password = "Lozinka mora imati bar 6 karaktera.";
+    else if (form.password.length < 6) next.password = "Lozinka mora imati bar 6 karaktera.";
 
-    if (!form.confirmPassword)
-      next.confirmPassword = "Potvrda lozinke je obavezna.";
-    else if (form.confirmPassword !== form.password)
-      next.confirmPassword = "Lozinke se ne poklapaju.";
+    if (!form.confirmPassword) next.confirmPassword = "Potvrda lozinke je obavezna.";
+    else if (form.confirmPassword !== form.password) next.confirmPassword = "Lozinke se ne poklapaju.";
 
-    if (!form.acceptTerms)
-      next.acceptTerms = "Moraš da prihvatiš uslove korišćenja.";
+    if (!form.acceptTerms) next.acceptTerms = "Moraš da prihvatiš uslove korišćenja.";
 
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -83,11 +81,33 @@ export default function RegisterPage() {
     if (!validate()) return;
 
     setIsSubmitting(true);
+
     try {
-      await new Promise((r) => setTimeout(r, 700));
-      localStorage.setItem("demo_auth", "true");
-      router.push("/animals");
-    } catch {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ime: form.ime,
+          prezime: form.prezime,
+          datumRodjenja: form.datumRodjenja,
+          email: form.email,
+          lozinka: form.password, // backend očekuje "lozinka"
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setErrors((p) => ({
+          ...p,
+          general: data?.error?.message ?? "Registracija nije uspela. Pokušaj ponovo.",
+        }));
+        return;
+      }
+
+      // Uspešna registracija -> na početnu (ili možeš /login ako želiš)
+      router.push("/");
+    } catch (err) {
       setErrors((p) => ({ ...p, general: "Došlo je do greške. Pokušaj ponovo." }));
     } finally {
       setIsSubmitting(false);
@@ -101,21 +121,12 @@ export default function RegisterPage() {
 
       <section className="w-full max-w-sm">
         <div className="rounded-2xl bg-white/90 backdrop-blur border border-neutral-200 shadow-xl p-7">
-
           {/* LOGO */}
           <div className="flex justify-center mb-4">
-            <Image
-              src="/logofinal.png"
-              alt="ResQ Collective logo"
-              width={130}
-              height={130}
-              priority
-            />
+            <Image src="/logofinal.png" alt="ResQ Collective logo" width={130} height={130} priority />
           </div>
 
-          <h1 className="text-4xl font-extrabold text-neutral-900">
-            Napravi nalog
-          </h1>
+          <h1 className="text-4xl font-extrabold text-neutral-900">Napravi nalog</h1>
 
           <p className="mt-2 text-sm text-neutral-600">
             Registruj se da bi mogao/la da udomiš ili pomogneš životinjama.
@@ -201,13 +212,10 @@ export default function RegisterPage() {
               />
               <span>
                 Prihvatam uslove korišćenja i politiku privatnosti.
-                {errors.acceptTerms && (
-                  <span className="block mt-1 text-red-600">{errors.acceptTerms}</span>
-                )}
+                {errors.acceptTerms && <span className="block mt-1 text-red-600">{errors.acceptTerms}</span>}
               </span>
             </label>
 
-            {/* DUGME */}
             <button
               type="submit"
               disabled={isSubmitting}

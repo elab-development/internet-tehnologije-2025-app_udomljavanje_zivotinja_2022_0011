@@ -28,11 +28,21 @@ export default function LoginPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Opcionalno: učitaj zapamćen email
+  useEffect(() => {
+    const saved = localStorage.getItem("remember_email");
+    if (saved) {
+      setForm((p) => ({ ...p, email: saved }));
+    }
+  }, []);
+
+  // Kad korisnik menja inpute, skloni general error
   useEffect(() => {
     if (errors.general) {
       setErrors((p) => ({ ...p, general: undefined }));
     }
-  }, [form.email, form.password, errors.general]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.email, form.password]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type, checked } = e.target;
@@ -58,9 +68,38 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 600));
-      localStorage.setItem("demo_auth", "true");
-      router.push("/animals");
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          lozinka: form.password, // backend očekuje "lozinka"
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setErrors((p) => ({
+          ...p,
+          general: data?.error?.message ?? "Pogrešan email ili lozinka.",
+        }));
+        return;
+      }
+
+      // sačuvaj JWT token
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      // remember me: sačuvaj email (opciono)
+      if (form.remember) {
+        localStorage.setItem("remember_email", form.email);
+      } else {
+        localStorage.removeItem("remember_email");
+      }
+
+      router.push("/");
     } catch {
       setErrors((p) => ({ ...p, general: "Došlo je do greške. Pokušaj ponovo." }));
     } finally {
@@ -77,13 +116,7 @@ export default function LoginPage() {
         <div className="rounded-2xl bg-white/90 backdrop-blur border border-neutral-200 shadow-xl p-7">
           {/* LOGO IZNAD NASLOVA */}
           <div className="flex justify-center mb-4">
-            <Image
-              src="/logofinal.png"
-              alt="ResQ Collective logo"
-              width={120}
-              height={120}
-              priority
-            />
+            <Image src="/logofinal.png" alt="ResQ Collective logo" width={120} height={120} priority />
           </div>
 
           <h1 className="text-4xl font-extrabold leading-tight text-neutral-900">

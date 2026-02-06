@@ -5,13 +5,12 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "library"
+  provider = "prisma-client-js"
 }
-
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Korisnik {
@@ -21,6 +20,8 @@ model Korisnik {
   email     String   @unique
   lozinka   String
   role Role @default(UDOMITELJ)
+
+  datumRodjenja DateTime?
 
   zivotinje           Zivotinja[]
   zahteviUsvajanje    ZahtevZaUsvajanje[]

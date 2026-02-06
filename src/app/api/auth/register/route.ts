@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { prisma } from "@/lib/prisma";
 import { fail, ok } from "@/lib/api";
 import { hashLozinka } from "@/lib/auth";
@@ -6,18 +8,36 @@ import { hashLozinka } from "@/lib/auth";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+
     const ime = String(body?.ime ?? "").trim();
     const prezime = String(body?.prezime ?? "").trim();
     const email = String(body?.email ?? "").trim().toLowerCase();
     const lozinka = String(body?.lozinka ?? "");
 
+    // očekujemo format "YYYY-MM-DD" (iz input type="date")
+    const datumRodjenjaRaw = String(body?.datumRodjenja ?? "").trim();
+
     if (!ime || !prezime || !email || !lozinka) {
-      return fail("Nedostaju obavezna polja (ime, prezime, email, lozinka).", 400, "VALIDATION");
+      return fail(
+        "Nedostaju obavezna polja (ime, prezime, email, lozinka).",
+        400,
+        "VALIDATION"
+      );
     }
 
-    // basic email check
+    // ako želiš da datum rođenja bude obavezan:
+    if (!datumRodjenjaRaw) {
+      return fail("Nedostaje datum rođenja.", 400, "VALIDATION");
+    }
+
     if (!email.includes("@")) {
       return fail("Neispravan email.", 400, "VALIDATION");
+    }
+
+    // parsiranje datuma (bezbedno)
+    const datumRodjenja = new Date(datumRodjenjaRaw);
+    if (Number.isNaN(datumRodjenja.getTime())) {
+      return fail("Neispravan datum rođenja.", 400, "VALIDATION");
     }
 
     const postoji = await prisma.korisnik.findUnique({ where: { email } });
@@ -33,6 +53,7 @@ export async function POST(req: Request) {
         prezime,
         email,
         lozinka: hashed,
+        datumRodjenja, 
       },
       select: {
         id: true,
@@ -40,12 +61,14 @@ export async function POST(req: Request) {
         prezime: true,
         email: true,
         role: true,
+        datumRodjenja: true,
         createdAt: true,
       },
     });
 
     return ok(user, 201);
   } catch (e) {
+    console.error("REGISTER ERROR:", e);
     return fail("Greška pri registraciji.", 500, "SERVER_ERROR");
   }
 }
