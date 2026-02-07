@@ -56,7 +56,10 @@ export default function LoginPage() {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   }
 
   function validate() {
@@ -66,7 +69,8 @@ export default function LoginPage() {
     else if (!form.email.includes("@")) next.email = "Unesi ispravan email.";
 
     if (!form.password) next.password = "Lozinka je obavezna.";
-    else if (form.password.length < 6) next.password = "Lozinka mora imati bar 6 karaktera.";
+    else if (form.password.length < 6)
+      next.password = "Lozinka mora imati bar 6 karaktera.";
 
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -99,22 +103,22 @@ export default function LoginPage() {
         return;
       }
 
-      // token (ako backend šalje)
-      const token = data?.data?.token ?? data?.token;
-if (token) {
-  localStorage.setItem("token", token);
-} else {
+    
+      const token: string | undefined = data?.data?.token ?? data?.token;
+      const user: AuthUser | undefined = data?.data?.user ?? data?.user;
+
+      if (token) {
+        localStorage.setItem("token", token);
+      } else {
         localStorage.removeItem("token");
       }
 
-      // korisnik (da navbar može da pokaže ime)
-      // podržava oba formata: {data:{...}} ili direktno {...}
-      const user: AuthUser | null = (data?.data ?? data) as AuthUser | null;
       if (user?.email) {
+        localStorage.setItem("role", user.role);
         localStorage.setItem("auth_user", JSON.stringify(user));
         localStorage.setItem("auth_logged_in", "true");
       } else {
-        // ako backend ne vraća user-a, bar obriši staro
+        localStorage.removeItem("role");
         localStorage.removeItem("auth_user");
         localStorage.removeItem("auth_logged_in");
       }
@@ -127,15 +131,21 @@ if (token) {
       }
 
       // success poruka
-      setSuccessMsg(user?.ime ? `Uspešno ste prijavljeni. Zdravo, ${user.ime}!` : "Uspešno ste prijavljeni.");
+      setSuccessMsg(
+        user?.ime
+          ? `Uspešno ste prijavljeni. Zdravo, ${user.ime}!`
+          : "Uspešno ste prijavljeni."
+      );
 
-      // sačekaj kratko da korisnik vidi poruku, pa preusmeri
+      // hard redirect da se Navbar sigurno osveži
       setTimeout(() => {
-        // koristimo hard redirect da se Navbar sigurno osveži
         window.location.href = "/";
       }, 900);
     } catch {
-      setErrors((p) => ({ ...p, general: "Došlo je do greške. Pokušaj ponovo." }));
+      setErrors((p) => ({
+        ...p,
+        general: "Došlo je do greške. Pokušaj ponovo.",
+      }));
     } finally {
       setIsSubmitting(false);
     }
@@ -148,9 +158,14 @@ if (token) {
 
       <section className="w-full max-w-sm">
         <div className="rounded-2xl bg-white/90 backdrop-blur border border-neutral-200 shadow-xl p-7">
-          {/* LOGO IZNAD NASLOVA */}
           <div className="flex justify-center mb-4">
-            <Image src="/logofinal.png" alt="ResQ Collective logo" width={120} height={120} priority />
+            <Image
+              src="/logofinal.png"
+              alt="ResQ Collective logo"
+              width={120}
+              height={120}
+              priority
+            />
           </div>
 
           <h1 className="text-4xl font-extrabold leading-tight text-neutral-900">

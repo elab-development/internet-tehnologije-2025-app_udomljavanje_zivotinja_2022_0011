@@ -114,7 +114,7 @@ enum StatusZahteva {
 enum StatusNotifikacije {
   DRAFT
   POSLATA
-  NEUSPEŠNA
+  NEUSPESNA
 }
 enum Role {
   ADMIN

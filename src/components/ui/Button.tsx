@@ -1,30 +1,28 @@
 import React from "react";
 
-type ButtonProps = {
-  type?: "button" | "submit" | "reset";
-  children: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  className?: string;
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  fullWidth?: boolean; 
 };
 
 export default function Button({
   type = "button",
   children,
-  onClick,
   disabled = false,
   className = "",
+  fullWidth = false, 
+  ...props
 }: ButtonProps) {
   return (
     <button
       type={type}
-      onClick={onClick}
       disabled={disabled}
+      {...props}
       className={[
-        // layout & typography (kao login)
-        "w-full rounded-xl px-4 py-3 text-sm font-semibold",
+        
+        fullWidth ? "w-full" : "w-fit",
+        "rounded-xl px-4 py-3 text-sm font-semibold",
 
-        // PASTELNO PLAVA – KANON IZ LOGIN-A
+      
         "bg-[#C3E7FD] text-neutral-800 shadow-sm",
         "hover:bg-[#AEDCF9]",
 

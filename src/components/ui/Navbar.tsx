@@ -17,11 +17,14 @@ const linkovi = [
 export default function Navbar() {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
-  //  proveri token pri mount-u i pri promeni rute
+  // proveri token + rolu pri mount-u i pri promeni rute
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const r = localStorage.getItem("role");
     setIsLoggedIn(!!token);
+    setRole(r);
   }, [pathname]);
 
   async function logout() {
@@ -30,6 +33,10 @@ export default function Navbar() {
     } catch {}
 
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("auth_user");
+    localStorage.removeItem("auth_logged_in");
+
     window.location.href = "/";
   }
 
@@ -37,7 +44,12 @@ export default function Navbar() {
     <header className="w-full border-b bg-white">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logofinal.png" alt="ResQ collective logo" width={32} height={32} />
+          <Image
+            src="/logofinal.png"
+            alt="ResQ collective logo"
+            width={32}
+            height={32}
+          />
           <span className="text-lg font-semibold">ResQ collective Beograd</span>
         </Link>
 
@@ -58,9 +70,27 @@ export default function Navbar() {
 
         <div className="flex gap-2">
           {isLoggedIn ? (
-            <Button onClick={logout} className="w-fit px-4 py-2">
-              Odjava
-            </Button>
+            <>
+              {role === "UDOMITELJ" && (
+                <Link href="/volonter">
+                  <Button className="w-fit px-4 py-2">
+                    Postani volonter
+                  </Button>
+                </Link>
+              )}
+
+              {role === "ADMIN" && (
+                <Link href="/admin/volonteri">
+                  <Button className="w-fit px-4 py-2">
+                    Zahtevi za volontere
+                  </Button>
+                </Link>
+              )}
+
+              <Button onClick={logout} className="w-fit px-4 py-2">
+                Odjava
+              </Button>
+            </>
           ) : (
             <>
               <Link href="/login">

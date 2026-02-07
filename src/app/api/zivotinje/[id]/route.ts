@@ -4,13 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api";
 import { requireAuth, requireRole } from "@/lib/guard";
 
-type Params = { params: { id: string } };
+type Ctx = { params: { id: string } };
 
-// GET /api/zivotinje/:id  (PUBLIC)
-export async function GET(_: Request, { params }: Params) {
+// GET /api/zivotinje/:id (PUBLIC)
+export async function GET(_: Request, ctx: Ctx) {
   try {
-    const id = Number(params.id);
-    if (!Number.isFinite(id)) {
+    const idStr = ctx?.params?.id;
+    const id = parseInt(idStr, 10);
+
+    if (!idStr || Number.isNaN(id)) {
       return fail("Neispravan id.", 400, "VALIDATION");
     }
 
@@ -32,8 +34,8 @@ export async function GET(_: Request, { params }: Params) {
   }
 }
 
-// PATCH /api/zivotinje/:id  (PROTECTED: ADMIN/VOLONTER)
-export async function PATCH(req: Request, { params }: Params) {
+// PATCH /api/zivotinje/:id (PROTECTED: ADMIN/VOLONTER)
+export async function PATCH(req: Request, ctx: Ctx) {
   const auth = await requireAuth(req);
   if (auth instanceof Response) return auth;
 
@@ -41,29 +43,39 @@ export async function PATCH(req: Request, { params }: Params) {
   if (forbidden) return forbidden;
 
   try {
-    const id = Number(params.id);
-    if (!Number.isFinite(id)) {
+    const idStr = ctx?.params?.id;
+    const id = parseInt(idStr, 10);
+
+    if (!idStr || Number.isNaN(id)) {
       return fail("Neispravan id.", 400, "VALIDATION");
     }
 
     const body = await req.json().catch(() => ({}));
 
-    // dozvoli parcijalni update
+    // parcijalni update: validiraj samo ono što je poslato
     const ime = body?.ime !== undefined ? String(body.ime).trim() : undefined;
-    const vrsta = body?.vrsta !== undefined ? String(body.vrsta).trim() : undefined;
+    const vrsta =
+      body?.vrsta !== undefined ? String(body.vrsta).trim() : undefined;
     const pol = body?.pol !== undefined ? String(body.pol).trim() : undefined;
-    const lokacija = body?.lokacija !== undefined ? String(body.lokacija).trim() : undefined;
-    const opis = body?.opis !== undefined ? String(body.opis).trim() : undefined;
+    const lokacija =
+      body?.lokacija !== undefined ? String(body.lokacija).trim() : undefined;
+    const opis =
+      body?.opis !== undefined ? String(body.opis).trim() : undefined;
 
     const starost =
       body?.starost !== undefined ? Number(body.starost) : undefined;
 
-    // Validacije samo za polja koja su poslata
-    if (ime !== undefined && !ime) return fail("Ime ne može biti prazno.", 400, "VALIDATION");
-    if (vrsta !== undefined && !vrsta) return fail("Vrsta ne može biti prazna.", 400, "VALIDATION");
-    if (pol !== undefined && !pol) return fail("Pol ne može biti prazan.", 400, "VALIDATION");
-    if (lokacija !== undefined && !lokacija) return fail("Lokacija ne može biti prazna.", 400, "VALIDATION");
-    if (opis !== undefined && !opis) return fail("Opis ne može biti prazan.", 400, "VALIDATION");
+    // Validacije
+    if (ime !== undefined && !ime)
+      return fail("Ime ne može biti prazno.", 400, "VALIDATION");
+    if (vrsta !== undefined && !vrsta)
+      return fail("Vrsta ne može biti prazna.", 400, "VALIDATION");
+    if (pol !== undefined && !pol)
+      return fail("Pol ne može biti prazan.", 400, "VALIDATION");
+    if (lokacija !== undefined && !lokacija)
+      return fail("Lokacija ne može biti prazna.", 400, "VALIDATION");
+    if (opis !== undefined && !opis)
+      return fail("Opis ne može biti prazan.", 400, "VALIDATION");
 
     if (starost !== undefined) {
       if (!Number.isFinite(starost) || starost <= 0) {
@@ -71,7 +83,7 @@ export async function PATCH(req: Request, { params }: Params) {
       }
     }
 
-    // update payload
+    // payload za update
     const dataToUpdate: any = {};
     if (ime !== undefined) dataToUpdate.ime = ime;
     if (vrsta !== undefined) dataToUpdate.vrsta = vrsta;
@@ -84,7 +96,7 @@ export async function PATCH(req: Request, { params }: Params) {
       return fail("Nema polja za izmenu.", 400, "VALIDATION");
     }
 
-    // prvo proveri da li postoji (lepši 404)
+    // lepši 404 ako ne postoji
     const postoji = await prisma.zivotinja.findUnique({ where: { id } });
     if (!postoji) {
       return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
@@ -102,8 +114,8 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 }
 
-// DELETE /api/zivotinje/:id  (PROTECTED: ADMIN/VOLONTER)
-export async function DELETE(req: Request, { params }: Params) {
+// DELETE /api/zivotinje/:id (PROTECTED: ADMIN/VOLONTER)
+export async function DELETE(req: Request, ctx: Ctx) {
   const auth = await requireAuth(req);
   if (auth instanceof Response) return auth;
 
@@ -111,8 +123,10 @@ export async function DELETE(req: Request, { params }: Params) {
   if (forbidden) return forbidden;
 
   try {
-    const id = Number(params.id);
-    if (!Number.isFinite(id)) {
+    const idStr = ctx?.params?.id;
+    const id = parseInt(idStr, 10);
+
+    if (!idStr || Number.isNaN(id)) {
       return fail("Neispravan id.", 400, "VALIDATION");
     }
 
