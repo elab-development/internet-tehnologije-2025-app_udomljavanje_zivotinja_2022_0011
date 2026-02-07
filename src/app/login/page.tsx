@@ -11,6 +11,14 @@ type FormState = {
   remember: boolean;
 };
 
+type AuthUser = {
+  id: number;
+  ime: string;
+  prezime?: string;
+  email: string;
+  role: string;
+};
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -27,6 +35,7 @@ export default function LoginPage() {
   }>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Opcionalno: učitaj zapamćen email
   useEffect(() => {
@@ -36,11 +45,12 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Kad korisnik menja inpute, skloni general error
+  // Kad korisnik menja inpute, skloni general error i success
   useEffect(() => {
     if (errors.general) {
       setErrors((p) => ({ ...p, general: undefined }));
     }
+    if (successMsg) setSuccessMsg(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.email, form.password]);
 
@@ -67,6 +77,8 @@ export default function LoginPage() {
     if (!validate()) return;
 
     setIsSubmitting(true);
+    setSuccessMsg(null);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -87,9 +99,24 @@ export default function LoginPage() {
         return;
       }
 
-      // sačuvaj JWT token
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
+      // token (ako backend šalje)
+      const token = data?.data?.token ?? data?.token;
+if (token) {
+  localStorage.setItem("token", token);
+} else {
+        localStorage.removeItem("token");
+      }
+
+      // korisnik (da navbar može da pokaže ime)
+      // podržava oba formata: {data:{...}} ili direktno {...}
+      const user: AuthUser | null = (data?.data ?? data) as AuthUser | null;
+      if (user?.email) {
+        localStorage.setItem("auth_user", JSON.stringify(user));
+        localStorage.setItem("auth_logged_in", "true");
+      } else {
+        // ako backend ne vraća user-a, bar obriši staro
+        localStorage.removeItem("auth_user");
+        localStorage.removeItem("auth_logged_in");
       }
 
       // remember me: sačuvaj email (opciono)
@@ -99,7 +126,14 @@ export default function LoginPage() {
         localStorage.removeItem("remember_email");
       }
 
-      router.push("/");
+      // success poruka
+      setSuccessMsg(user?.ime ? `Uspešno ste prijavljeni. Zdravo, ${user.ime}!` : "Uspešno ste prijavljeni.");
+
+      // sačekaj kratko da korisnik vidi poruku, pa preusmeri
+      setTimeout(() => {
+        // koristimo hard redirect da se Navbar sigurno osveži
+        window.location.href = "/";
+      }, 900);
     } catch {
       setErrors((p) => ({ ...p, general: "Došlo je do greške. Pokušaj ponovo." }));
     } finally {
@@ -128,6 +162,12 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-neutral-600">
             Uloguj se da bi pregledao/la životinje i podneo/la zahtev za udomljavanje.
           </p>
+
+          {successMsg && (
+            <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              {successMsg}
+            </div>
+          )}
 
           {errors.general && (
             <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -179,7 +219,6 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* DUGME – ISTA NEBO PLAVA BOJA #C3E7FD */}
             <button
               type="submit"
               disabled={isSubmitting}
