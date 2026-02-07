@@ -40,14 +40,19 @@ export async function POST(req: Request) {
 
     const ime = String(body?.ime ?? "").trim();
     const vrsta = String(body?.vrsta ?? "").trim();
-    const starost = Number(body?.starost ?? 0);
+    const starost = Number(body?.starost);
     const pol = String(body?.pol ?? "").trim();
     const lokacija = String(body?.lokacija ?? "").trim();
     const opis = String(body?.opis ?? "").trim();
 
-    if (!ime || !vrsta || !starost || !pol || !lokacija || !opis) {
-      return fail("Nedostaju obavezna polja za životinju.", 400, "VALIDATION");
-    }
+if (!ime || !vrsta || !pol || !lokacija || !opis) {
+  return fail("Nedostaju obavezna polja za životinju.", 400, "VALIDATION");
+}
+
+if (!Number.isFinite(starost) || starost <= 0) {
+  return fail("Starost mora biti pozitivan broj.", 400, "VALIDATION");
+}
+
 
     const nova = await prisma.zivotinja.create({
       data: {
