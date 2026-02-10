@@ -19,7 +19,6 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<string | null>(null);
 
-  // proveri token + rolu pri mount-u i pri promeni rute
   useEffect(() => {
     const token = localStorage.getItem("token");
     const r = localStorage.getItem("role");

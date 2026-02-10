@@ -77,7 +77,7 @@ export default function AdminVolonteriPage() {
     setBusyId(id);
 
     try {
-      // ✅ BITNO: /api prefiks mora da postoji
+      
       const res = await apiFetch(`/api/zahtevi-volontera/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
@@ -87,15 +87,15 @@ export default function AdminVolonteriPage() {
 
       if (!res.ok) {
         setGreska(json?.error?.message ?? "Greška pri izmeni statusa.");
-        return; // ✅ nemoj dalje
+        return; 
       }
 
-      // ✅ update na frontu
+      
       setData((prev) => prev.map((z) => (z.id === id ? { ...z, status } : z)));
     } catch {
       setGreska("Greška pri izmeni statusa.");
     } finally {
-      setBusyId(null); // ✅ uvek reset
+      setBusyId(null);
     }
   }
 

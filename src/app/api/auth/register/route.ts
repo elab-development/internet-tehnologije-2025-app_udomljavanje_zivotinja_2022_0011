@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const email = String(body?.email ?? "").trim().toLowerCase();
     const lozinka = String(body?.lozinka ?? "");
 
-    // očekujemo format "YYYY-MM-DD" (iz input type="date")
+    // YYYY-MM-DD
     const datumRodjenjaRaw = String(body?.datumRodjenja ?? "").trim();
 
     if (!ime || !prezime || !email || !lozinka) {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ako želiš da datum rođenja bude obavezan:
+   
     if (!datumRodjenjaRaw) {
       return fail("Nedostaje datum rođenja.", 400, "VALIDATION");
     }
@@ -34,7 +34,6 @@ export async function POST(req: Request) {
       return fail("Neispravan email.", 400, "VALIDATION");
     }
 
-    // parsiranje datuma (bezbedno)
     const datumRodjenja = new Date(datumRodjenjaRaw);
     if (Number.isNaN(datumRodjenja.getTime())) {
       return fail("Neispravan datum rođenja.", 400, "VALIDATION");

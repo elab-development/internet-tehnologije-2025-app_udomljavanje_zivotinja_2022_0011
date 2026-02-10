@@ -26,7 +26,6 @@ export async function POST(req: Request) {
       return fail("Pogrešan email ili lozinka.", 401, "INVALID_CREDENTIALS");
     }
 
-    // jasnija poruka ako JWT_SECRET nije podešen
     if (!process.env.JWT_SECRET) {
       return fail("Nedostaje JWT_SECRET u .env.", 500, "SERVER_CONFIG");
     }

@@ -41,12 +41,10 @@ export default function RegisterPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Kad korisnik krene da menja polja, skloni general error
   useEffect(() => {
     if (errors.general) {
       setErrors((p) => ({ ...p, general: undefined }));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.ime, form.prezime, form.datumRodjenja, form.email, form.password, form.confirmPassword, form.acceptTerms]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -91,7 +89,7 @@ export default function RegisterPage() {
           prezime: form.prezime,
           datumRodjenja: form.datumRodjenja,
           email: form.email,
-          lozinka: form.password, // backend očekuje "lozinka"
+          lozinka: form.password, 
         }),
       });
 
@@ -105,7 +103,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Uspešna registracija -> na početnu (ili možeš /login ako želiš)
+      
       router.push("/");
     } catch (err) {
       setErrors((p) => ({ ...p, general: "Došlo je do greške. Pokušaj ponovo." }));
@@ -121,7 +119,7 @@ export default function RegisterPage() {
 
       <section className="w-full max-w-sm">
         <div className="rounded-2xl bg-white/90 backdrop-blur border border-neutral-200 shadow-xl p-7">
-          {/* LOGO */}
+          
           <div className="flex justify-center mb-4">
             <Image src="/logofinal.png" alt="ResQ Collective logo" width={130} height={130} priority />
           </div>

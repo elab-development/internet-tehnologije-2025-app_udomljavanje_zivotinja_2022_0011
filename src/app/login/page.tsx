@@ -37,7 +37,6 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Opcionalno: učitaj zapamćen email
   useEffect(() => {
     const saved = localStorage.getItem("remember_email");
     if (saved) {
@@ -45,13 +44,11 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Kad korisnik menja inpute, skloni general error i success
   useEffect(() => {
     if (errors.general) {
       setErrors((p) => ({ ...p, general: undefined }));
     }
     if (successMsg) setSuccessMsg(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.email, form.password]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -89,7 +86,7 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: form.email,
-          lozinka: form.password, // backend očekuje "lozinka"
+          lozinka: form.password, 
         }),
       });
 
@@ -123,21 +120,21 @@ export default function LoginPage() {
         localStorage.removeItem("auth_logged_in");
       }
 
-      // remember me: sačuvaj email (opciono)
+      
       if (form.remember) {
         localStorage.setItem("remember_email", form.email);
       } else {
         localStorage.removeItem("remember_email");
       }
 
-      // success poruka
+      
       setSuccessMsg(
         user?.ime
           ? `Uspešno ste prijavljeni. Zdravo, ${user.ime}!`
           : "Uspešno ste prijavljeni."
       );
 
-      // hard redirect da se Navbar sigurno osveži
+      
       setTimeout(() => {
         window.location.href = "/";
       }, 900);

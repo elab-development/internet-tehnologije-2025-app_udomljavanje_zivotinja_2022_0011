@@ -46,8 +46,8 @@ export default function KontaktPage() {
       <section className="mt-12 rounded-2xl border p-6">
         <h2 className="font-semibold">Kontakt informacije</h2>
         <ul className="mt-3 text-sm opacity-80">
-          <li>📍 Beograd, Srbija</li>
-          <li>📧 resqcollectivebelgrade@gmail.com</li>
+          <li>Beograd, Srbija</li>
+          <li>resqcollectivebelgrade@gmail.com</li>
           
         </ul>
       </section>

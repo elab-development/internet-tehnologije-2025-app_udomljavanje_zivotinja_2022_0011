@@ -51,7 +51,7 @@ export default function VolonterZahtevPage() {
         Unesi iskustvo i motivaciju. Zahtev će biti vezan za tvoj nalog.
       </p>
 
-      {/* ✅ ISTI STIL KAO NA LOGIN STRANICI */}
+      {/*ISTI STIL KAO NA LOGIN STRANICI */}
       {uspeh && (
         <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           {uspeh}

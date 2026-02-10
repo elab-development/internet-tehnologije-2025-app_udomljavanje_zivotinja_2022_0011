@@ -14,7 +14,7 @@ export type JwtPayload = {
 export async function napraviToken(payload: JwtPayload) {
   const secret = getSecret();
 
-  // token važi 7 dana (možeš promeniti)
+  // token važi 7 dana
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

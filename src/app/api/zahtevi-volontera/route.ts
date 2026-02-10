@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return fail("Iskustvo i motivacija su obavezni.", 400, "VALIDATION");
     }
 
-    // spreči dupliranje zahteva istog korisnika:
+    // sprecava dupliranje zahteva
     const vecPostoji = await prisma.zahtevZaVolontera.findFirst({
       where: { korisnikId: auth.userId },
     });
