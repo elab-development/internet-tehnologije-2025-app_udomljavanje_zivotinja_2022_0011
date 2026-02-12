@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return ok(user, 201);
+    return ok(user, 201); 
   } catch (e) {
     console.error("REGISTER ERROR:", e);
     return fail("Greška pri registraciji.", 500, "SERVER_ERROR");

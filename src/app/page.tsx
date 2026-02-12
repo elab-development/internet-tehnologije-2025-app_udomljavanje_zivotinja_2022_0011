@@ -5,6 +5,13 @@ import Button from "@/components/ui/Button";
 export default function HomePage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
+      <div className="absolute inset-0 -z-10 opacity-15">
+        <img
+          src="/paws.jpg"
+          alt="background"
+          className="h-full w-full object-cover"
+        />
+      </div>
       <section className="rounded-2xl border p-8">
         <h1 className="text-3xl font-bold">
           Udomi prijatelja. Promeni život.
