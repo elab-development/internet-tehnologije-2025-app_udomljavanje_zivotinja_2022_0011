@@ -1,4 +1,4 @@
-export async function apiFetch(url: string, init: RequestInit = {}) {
+export async function apiFetch(url: string, init: RequestInit = {}) { //wrapper
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 

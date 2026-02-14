@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     const postoji = await prisma.korisnik.findUnique({ where: { email } });
     if (postoji) {
-      return fail("Korisnik sa tim email-om već postoji.", 409, "EMAIL_TAKEN");
+      return fail("Korisnik sa tim email-om već postoji.", 409, "EMAIL_TAKEN"); //conflict
     }
 
     const hashed = await hashLozinka(lozinka);
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return ok(user, 201);
+    return ok(user, 201); //created
   } catch (e) {
     console.error("REGISTER ERROR:", e);
     return fail("Greška pri registraciji.", 500, "SERVER_ERROR");

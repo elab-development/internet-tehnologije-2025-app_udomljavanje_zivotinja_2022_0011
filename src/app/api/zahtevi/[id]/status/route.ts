@@ -8,7 +8,7 @@ import { requireAuth, requireRole } from "@/lib/guard";
 
 type Params = { params: { id: string } };
 
-// PATCH /api/zahtevi/:id/status (PROTECTED: ADMIN/VOLONTER)
+
 export async function PATCH(req: Request, { params }: Params) {
   const auth = await requireAuth(req);
   if (auth instanceof Response) return auth;
