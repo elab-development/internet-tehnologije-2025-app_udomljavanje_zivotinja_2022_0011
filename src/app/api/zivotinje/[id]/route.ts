@@ -6,136 +6,97 @@ import { requireAuth, requireRole } from "@/lib/guard";
 
 type Ctx = { params: { id: string } };
 
-// GET
+function parseId(ctx: Ctx) {
+  const idStr = ctx?.params?.id;
+  const id = parseInt(idStr, 10);
+  if (!idStr || Number.isNaN(id)) return null;
+  return id;
+}
+
+// GET 
 export async function GET(_: Request, ctx: Ctx) {
   try {
-    const idStr = ctx?.params?.id;
-    const id = parseInt(idStr, 10);
-
-    if (!idStr || Number.isNaN(id)) {
-      return fail("Neispravan id.", 400, "VALIDATION");
-    }
+    const id = parseId(ctx);
+    if (!id) return fail("Neispravan id.", 400, "VALIDATION");
 
     const data = await prisma.zivotinja.findUnique({
       where: { id },
-      include: {
-        korisnik: { select: { id: true, ime: true, prezime: true } },
-      },
+      include: { korisnik: { select: { id: true, ime: true, prezime: true } } },
     });
 
-    if (!data) {
-      return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
-    }
-
+    if (!data) return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
     return ok(data, 200);
-  } catch (e: any) {
+  } catch (e) {
     console.error("GET ZIVOTINJA ID ERROR:", e);
     return fail("Greška pri učitavanju životinje.", 500, "SERVER_ERROR");
   }
 }
 
-// PATCH 
-export async function PATCH(req: Request, ctx: Ctx) {
-  const auth = await requireAuth(req);
-  if (auth instanceof Response) return auth;
-
-  const forbidden = requireRole(auth, ["ADMIN", "VOLONTER"]);
-  if (forbidden) return forbidden;
-
+// PUT 
+export async function PUT(req: Request, ctx: Ctx) {
   try {
-    const idStr = ctx?.params?.id;
-    const id = parseInt(idStr, 10);
+    const id = parseId(ctx);
+    if (!id) return fail("Neispravan id.", 400, "VALIDATION");
 
-    if (!idStr || Number.isNaN(id)) {
-      return fail("Neispravan id.", 400, "VALIDATION");
+    const auth = await requireAuth(req);
+    if (auth instanceof Response) return auth;
+
+    const roleResp = requireRole(auth, ["VOLONTER", "ADMIN"]);
+    if (roleResp) return roleResp;
+
+    const existing = await prisma.zivotinja.findUnique({ where: { id } });
+    if (!existing) return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
+
+ 
+    if (auth.role === "VOLONTER" && existing.korisnikId !== auth.userId) {
+      return fail("Nemate dozvolu za izmenu ove životinje.", 403, "FORBIDDEN");
     }
 
     const body = await req.json().catch(() => ({}));
+    const data: any = {};
 
-    const ime = body?.ime !== undefined ? String(body.ime).trim() : undefined;
-    const vrsta =
-      body?.vrsta !== undefined ? String(body.vrsta).trim() : undefined;
-    const pol = body?.pol !== undefined ? String(body.pol).trim() : undefined;
-    const lokacija =
-      body?.lokacija !== undefined ? String(body.lokacija).trim() : undefined;
-    const opis =
-      body?.opis !== undefined ? String(body.opis).trim() : undefined;
-
-    const starost =
-      body?.starost !== undefined ? Number(body.starost) : undefined;
-
-    // Validacije
-    if (ime !== undefined && !ime)
-      return fail("Ime ne može biti prazno.", 400, "VALIDATION");
-    if (vrsta !== undefined && !vrsta)
-      return fail("Vrsta ne može biti prazna.", 400, "VALIDATION");
-    if (pol !== undefined && !pol)
-      return fail("Pol ne može biti prazan.", 400, "VALIDATION");
-    if (lokacija !== undefined && !lokacija)
-      return fail("Lokacija ne može biti prazna.", 400, "VALIDATION");
-    if (opis !== undefined && !opis)
-      return fail("Opis ne može biti prazan.", 400, "VALIDATION");
-
-    if (starost !== undefined) {
-      if (!Number.isFinite(starost) || starost <= 0) {
-        return fail("Starost mora biti pozitivan broj.", 400, "VALIDATION");
-      }
+    if (body?.ime != null) data.ime = String(body.ime).trim();
+    if (body?.vrsta != null) data.vrsta = String(body.vrsta).trim();
+    if (body?.pol != null) data.pol = String(body.pol).trim();
+    if (body?.lokacija != null) data.lokacija = String(body.lokacija).trim();
+    if (body?.opis != null) data.opis = String(body.opis).trim();
+    if (body?.starost != null) {
+      const s = Number(body.starost);
+      if (!Number.isFinite(s)) return fail("Neispravna starost.", 400, "VALIDATION");
+      data.starost = s;
     }
+    if (body?.status != null) data.status = String(body.status).trim(); // AKTIVNA/UDOMLJENA/PAUZIRANA
 
-    const dataToUpdate: any = {};
-    if (ime !== undefined) dataToUpdate.ime = ime;
-    if (vrsta !== undefined) dataToUpdate.vrsta = vrsta;
-    if (starost !== undefined) dataToUpdate.starost = starost;
-    if (pol !== undefined) dataToUpdate.pol = pol;
-    if (lokacija !== undefined) dataToUpdate.lokacija = lokacija;
-    if (opis !== undefined) dataToUpdate.opis = opis;
-
-    if (Object.keys(dataToUpdate).length === 0) {
-      return fail("Nema polja za izmenu.", 400, "VALIDATION");
-    }
-
-    const postoji = await prisma.zivotinja.findUnique({ where: { id } });
-    if (!postoji) {
-      return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
-    }
-
-    const izmenjena = await prisma.zivotinja.update({
-      where: { id },
-      data: dataToUpdate,
-    });
-
-    return ok(izmenjena, 200);
-  } catch (e: any) {
-    console.error("PATCH ZIVOTINJA ERROR:", e);
+    const updated = await prisma.zivotinja.update({ where: { id }, data });
+    return ok(updated, 200);
+  } catch (e) {
+    console.error("PUT ZIVOTINJA ERROR:", e);
     return fail("Greška pri izmeni životinje.", 500, "SERVER_ERROR");
   }
 }
 
-// DELETE
+// DELETE 
 export async function DELETE(req: Request, ctx: Ctx) {
-  const auth = await requireAuth(req);
-  if (auth instanceof Response) return auth;
-
-  const forbidden = requireRole(auth, ["ADMIN", "VOLONTER"]);
-  if (forbidden) return forbidden;
-
   try {
-    const idStr = ctx?.params?.id;
-    const id = parseInt(idStr, 10);
+    const id = parseId(ctx);
+    if (!id) return fail("Neispravan id.", 400, "VALIDATION");
 
-    if (!idStr || Number.isNaN(id)) {
-      return fail("Neispravan id.", 400, "VALIDATION");
-    }
+    const auth = await requireAuth(req);
+    if (auth instanceof Response) return auth;
 
-    const postoji = await prisma.zivotinja.findUnique({ where: { id } });
-    if (!postoji) {
-      return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
+    const roleResp = requireRole(auth, ["VOLONTER", "ADMIN"]);
+    if (roleResp) return roleResp;
+
+    const existing = await prisma.zivotinja.findUnique({ where: { id } });
+    if (!existing) return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
+
+    if (auth.role === "VOLONTER" && existing.korisnikId !== auth.userId) {
+      return fail("Nemate dozvolu da obrišete ovu životinju.", 403, "FORBIDDEN");
     }
 
     await prisma.zivotinja.delete({ where: { id } });
-
-    return ok({ deleted: true, id }, 200);
-  } catch (e: any) {
+    return ok({ deleted: true }, 200);
+  } catch (e) {
     console.error("DELETE ZIVOTINJA ERROR:", e);
     return fail("Greška pri brisanju životinje.", 500, "SERVER_ERROR");
   }

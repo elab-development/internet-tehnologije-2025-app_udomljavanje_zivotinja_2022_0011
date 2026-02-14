@@ -1,8 +1,8 @@
-export async function apiFetch(url: string, init: RequestInit = {}) { //wrapper
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+type ApiFetchOptions = RequestInit & { raw?: boolean };
 
-  
+export async function apiFetch<T = any>(url: string, init: ApiFetchOptions = {}): Promise<T> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
   let finalUrl = url;
   if (!finalUrl.startsWith("/api")) {
     if (!finalUrl.startsWith("/")) finalUrl = "/" + finalUrl;
@@ -10,7 +10,6 @@ export async function apiFetch(url: string, init: RequestInit = {}) { //wrapper
   }
 
   const headers = new Headers(init.headers);
-
 
   const isFormData =
     typeof FormData !== "undefined" && init.body instanceof FormData;
@@ -23,5 +22,20 @@ export async function apiFetch(url: string, init: RequestInit = {}) { //wrapper
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  return fetch(finalUrl, { ...init, headers });
+  const res = await fetch(finalUrl, { ...init, headers });
+
+  if (init.raw) return res as unknown as T;
+
+  const json = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    const msg =
+      json?.error?.message ||
+      json?.message ||
+      "Greška na serveru.";
+    throw new Error(msg);
+  }
+
+
+  return (json?.data ?? json) as T;
 }
