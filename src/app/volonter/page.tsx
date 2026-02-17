@@ -13,32 +13,31 @@ export default function VolonterZahtevPage() {
 
   async function podnesi(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
+
     setGreska(null);
     setUspeh(null);
 
-    if (!iskustvo.trim() || !motivacija.trim()) {
+    const i = iskustvo.trim();
+    const m = motivacija.trim();
+
+    if (!i || !m) {
       setGreska("Iskustvo i motivacija su obavezni.");
       return;
     }
 
     setLoading(true);
     try {
-      const res = await apiFetch("/api/zahtevi-volontera", {
+      await apiFetch("/zahtevi-volontera", {
         method: "POST",
-        body: JSON.stringify({ iskustvo, motivacija }),
+        body: JSON.stringify({ iskustvo: i, motivacija: m }),
       });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setGreska(err?.error?.message ?? "Greška pri slanju zahteva.");
-        return;
-      }
 
       setUspeh("Zahtev je uspešno poslat!");
       setIskustvo("");
       setMotivacija("");
-    } catch {
-      setGreska("Greška pri slanju zahteva.");
+    } catch (e: any) {
+      setGreska(e?.message ?? "Greška pri slanju zahteva.");
     } finally {
       setLoading(false);
     }
@@ -51,7 +50,6 @@ export default function VolonterZahtevPage() {
         Unesi iskustvo i motivaciju. Zahtev će biti vezan za tvoj nalog.
       </p>
 
-      {/*ISTI STIL KAO NA LOGIN STRANICI */}
       {uspeh && (
         <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
           {uspeh}
@@ -73,6 +71,7 @@ export default function VolonterZahtevPage() {
             value={iskustvo}
             onChange={(e) => setIskustvo(e.target.value)}
             placeholder="Npr. rad sa psima, volontiranje, šetnje, nega..."
+            disabled={loading}
           />
         </div>
 
@@ -84,6 +83,7 @@ export default function VolonterZahtevPage() {
             value={motivacija}
             onChange={(e) => setMotivacija(e.target.value)}
             placeholder="Zašto želiš da postaneš volonter?"
+            disabled={loading}
           />
         </div>
 

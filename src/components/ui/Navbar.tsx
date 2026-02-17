@@ -67,28 +67,39 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {isLoggedIn ? (
             <>
               {role === "UDOMITELJ" && (
                 <Link href="/volonter">
-                  <Button className="w-fit px-4 py-2">
-                    Postani volonter
-                  </Button>
+                  <Button className="w-fit px-4 py-2">Postani volonter</Button>
                 </Link>
               )}
 
               {role === "ADMIN" && (
                 <Link href="/admin/volonteri">
-                  <Button className="w-fit px-4 py-2">
-                    Zahtevi za volontere
-                  </Button>
+                  <Button className="w-fit px-4 py-2">Zahtevi za volontere</Button>
                 </Link>
               )}
 
               <Button onClick={logout} className="w-fit px-4 py-2">
                 Odjava
               </Button>
+
+              
+              <Link
+                href="/profil"
+                title="Profil"
+                className="inline-flex h-10 w-10 items-center justify-center transition hover:opacity-90"
+              >
+                <Image
+                  src="/user.png"
+                  alt="Profil"
+                  width={26}
+                  height={26}
+                  className="rounded-full"
+                />
+              </Link>
             </>
           ) : (
             <>

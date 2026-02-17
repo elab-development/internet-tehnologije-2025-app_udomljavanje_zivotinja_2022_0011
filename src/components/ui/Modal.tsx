@@ -25,7 +25,7 @@ export default function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="mb-4 flex items-start justify-between gap-3">
           <h2 className="text-lg font-semibold">{title ?? "Detalji"}</h2>
           <button className="rounded-lg border px-2 py-1 text-sm" onClick={onClose}>

@@ -10,7 +10,7 @@ function parseIntSafe(v: string | null) {
   return Number.isFinite(n) ? n : null;
 }
 
-// GET 
+// GET
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -26,11 +26,12 @@ export async function GET(req: Request) {
 
     const where: any = {};
 
-    if (status) where.status = status; // AKTIVNA/UDOMLJENA/PAUZIRANA
-    if (vrsta) where.vrsta = { equals: vrsta, mode: "insensitive" };
-    if (pol) where.pol = { equals: pol, mode: "insensitive" };
-    if (lokacija) where.lokacija = { contains: lokacija, mode: "insensitive" };
-    if (q) where.ime = { contains: q, mode: "insensitive" };
+    if (status) where.status = status;
+    if (vrsta) where.vrsta = vrsta;        
+    if (pol) where.pol = pol;
+    if (lokacija) where.lokacija = { contains: lokacija };
+    if (q) where.ime = { contains: q };
+
 
     if (minStarost != null || maxStarost != null) {
       where.starost = {};
@@ -49,6 +50,7 @@ export async function GET(req: Request) {
         pol: true,
         lokacija: true,
         status: true,
+        slikaUrl: true, 
       },
     });
 
@@ -77,8 +79,16 @@ export async function POST(req: Request) {
     const opis = String(body?.opis ?? "").trim();
     const starost = Number(body?.starost);
 
+
+    const slikaUrl = String(body?.slikaUrl ?? "").trim();
+
     if (!ime || !vrsta || !pol || !lokacija || !opis || !Number.isFinite(starost)) {
       return fail("Nedostaju obavezna polja.", 400, "VALIDATION");
+    }
+
+
+    if (!slikaUrl) {
+      return fail("Nedostaje slika (upload slike).", 400, "VALIDATION");
     }
 
     const created = await prisma.zivotinja.create({
@@ -91,6 +101,7 @@ export async function POST(req: Request) {
         starost,
         status: "AKTIVNA",
         korisnikId: auth.userId,
+        slikaUrl, 
       },
     });
 

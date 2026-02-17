@@ -4,19 +4,21 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api";
 import { requireAuth, requireRole } from "@/lib/guard";
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> | { id: string } };
 
-function parseId(ctx: Ctx) {
-  const idStr = ctx?.params?.id;
-  const id = parseInt(idStr, 10);
+async function parseId(ctx: Ctx) {
+  const params = await ctx.params;
+  const idStr = params?.id;
+  const id = parseInt(String(idStr ?? ""), 10);
   if (!idStr || Number.isNaN(id)) return null;
   return id;
 }
 
+
 // GET 
 export async function GET(_: Request, ctx: Ctx) {
   try {
-    const id = parseId(ctx);
+    const id = await parseId(ctx);
     if (!id) return fail("Neispravan id.", 400, "VALIDATION");
 
     const data = await prisma.zivotinja.findUnique({
@@ -35,7 +37,7 @@ export async function GET(_: Request, ctx: Ctx) {
 // PUT 
 export async function PUT(req: Request, ctx: Ctx) {
   try {
-    const id = parseId(ctx);
+    const id = await parseId(ctx);
     if (!id) return fail("Neispravan id.", 400, "VALIDATION");
 
     const auth = await requireAuth(req);
@@ -78,7 +80,7 @@ export async function PUT(req: Request, ctx: Ctx) {
 // DELETE 
 export async function DELETE(req: Request, ctx: Ctx) {
   try {
-    const id = parseId(ctx);
+    const id = await parseId(ctx);
     if (!id) return fail("Neispravan id.", 400, "VALIDATION");
 
     const auth = await requireAuth(req);

@@ -17,6 +17,7 @@ type ZivotinjaDetalji = {
   lokacija: string;
   status: string;
   opis: string;
+  slikaUrl?: string;
   korisnik: { id: number; ime: string; prezime: string };
 };
 
@@ -30,26 +31,45 @@ type FilterState = {
   sort: "newest" | "oldest" | "name";
 };
 
+function getRoleFromToken(): "ADMIN" | "VOLONTER" | "UDOMITELJ" | null {
+  if (typeof window === "undefined") return null;
+
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+
+    const json = decodeURIComponent(
+      atob(padded)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join("")
+    );
+
+    const payload = JSON.parse(json);
+    const r = payload?.role;
+
+    if (r === "ADMIN" || r === "VOLONTER" || r === "UDOMITELJ") return r;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export default function UdomljavanjePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // 👇 NOVO: role iz localStorage
   const [role, setRole] = useState<"ADMIN" | "VOLONTER" | "UDOMITELJ" | null>(null);
 
   useEffect(() => {
-    // probaj prvo "user", pa "korisnik" (za svaki slučaj)
-    const raw = localStorage.getItem("user") || localStorage.getItem("korisnik");
-    if (!raw) return;
-
-    try {
-      const parsed = JSON.parse(raw);
-      const r = parsed?.role as any;
-      if (r === "ADMIN" || r === "VOLONTER" || r === "UDOMITELJ") setRole(r);
-    } catch {
-      // ignore
-    }
+    setRole(getRoleFromToken());
   }, []);
 
   const [filter, setFilter] = useState<FilterState>({
@@ -64,6 +84,7 @@ export default function UdomljavanjePage() {
 
   const [zivotinje, setZivotinje] = useState<AnimalItem[]>([]);
   const [selected, setSelected] = useState<ZivotinjaDetalji | null>(null);
+
   const [openDetalji, setOpenDetalji] = useState(false);
   const [openUdomi, setOpenUdomi] = useState(false);
 
@@ -82,14 +103,7 @@ export default function UdomljavanjePage() {
     if (filter.maxStarost) sp.set("maxStarost", filter.maxStarost);
 
     return sp.toString();
-  }, [
-    filter.q,
-    filter.vrsta,
-    filter.pol,
-    filter.lokacija,
-    filter.minStarost,
-    filter.maxStarost,
-  ]);
+  }, [filter.q, filter.vrsta, filter.pol, filter.lokacija, filter.minStarost, filter.maxStarost]);
 
   function sortLocal(list: AnimalItem[]) {
     const copy = [...list];
@@ -102,10 +116,7 @@ export default function UdomljavanjePage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch<AnimalItem[]>(`/zivotinje?${queryString}`, {
-        method: "GET",
-      });
-
+      const data = await apiFetch<AnimalItem[]>(`/zivotinje?${queryString}`, { method: "GET" });
       setZivotinje(sortLocal(Array.isArray(data) ? data : []));
     } catch (e: any) {
       setError(e?.message ?? "Greška pri učitavanju.");
@@ -122,12 +133,14 @@ export default function UdomljavanjePage() {
 
   useEffect(() => {
     ucitajListu();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryString, filter.sort]);
 
   async function onOpenDetalji(id: number) {
     setSuccessMsg(null);
+    setError(null);
+    setSelected(null);
     setOpenDetalji(true);
+
     try {
       await ucitajDetalje(id);
     } catch (e: any) {
@@ -137,9 +150,12 @@ export default function UdomljavanjePage() {
 
   async function onOpenUdomi(id: number) {
     setSuccessMsg(null);
+    setError(null);
     setKontakt("");
     setMotivacija("");
+    setSelected(null);
     setOpenUdomi(true);
+
     try {
       await ucitajDetalje(id);
     } catch (e: any) {
@@ -168,9 +184,7 @@ export default function UdomljavanjePage() {
       });
 
       setOpenUdomi(false);
-      setSuccessMsg(
-        "Zahtev je poslat. (Kasnije ubacujemo slanje mejla preko eksternog API-ja.)"
-      );
+      setSuccessMsg("Zahtev je poslat.");
       await ucitajListu();
     } catch (e: any) {
       setError(e?.message ?? "Greška pri slanju zahteva.");
@@ -197,16 +211,13 @@ export default function UdomljavanjePage() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Udomljavanje</h1>
-          <p className="text-sm text-gray-600">
-            Pronađi životinju i pošalji zahtev za udomljavanje.
-          </p>
+          <p className="text-sm text-gray-600">Pronađi životinju i pošalji zahtev za udomljavanje.</p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* 👇 NOVO dugme samo za VOLONTER/ADMIN */}
           {mozeDaPostavi && (
             <Link
-              href="/volonter"
+              href="/postavi-zivotinju"
               className="rounded-xl bg-black px-4 py-2 text-sm text-white transition hover:opacity-90"
             >
               + Postavi životinju
@@ -240,10 +251,10 @@ export default function UdomljavanjePage() {
         </div>
       )}
 
-      {/* Layout: sidebar + grid */}
+      {/* Sidebar + grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
         {/* Sidebar */}
-        <aside className="rounded-2xl border bg-white p-4">
+        <aside className="self-start rounded-2xl border bg-white p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-base font-semibold">Filteri</h2>
             <button className="text-xs text-gray-600 hover:underline" onClick={resetFilter}>
@@ -325,10 +336,7 @@ export default function UdomljavanjePage() {
 
             <div className="flex gap-2 pt-1">
               <Button onClick={ucitajListu}>Primeni</Button>
-              <button
-                className="rounded-xl border px-4 py-2 text-sm hover:opacity-80"
-                onClick={resetFilter}
-              >
+              <button className="rounded-xl border px-4 py-2 text-sm hover:opacity-80" onClick={resetFilter}>
                 Reset
               </button>
             </div>
@@ -338,9 +346,7 @@ export default function UdomljavanjePage() {
         {/* Grid */}
         <section>
           {loading ? (
-            <div className="rounded-2xl border bg-white p-6 text-sm text-gray-600">
-              Učitavanje...
-            </div>
+            <div className="rounded-2xl border bg-white p-6 text-sm text-gray-600">Učitavanje...</div>
           ) : zivotinje.length === 0 ? (
             <div className="rounded-2xl border bg-white p-6 text-sm text-gray-600">
               Nema rezultata za izabrane filtere.
@@ -348,12 +354,7 @@ export default function UdomljavanjePage() {
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {zivotinje.map((z) => (
-                <AnimalCard
-                  key={z.id}
-                  zivotinja={z}
-                  onOpen={() => onOpenDetalji(z.id)}
-                  onAdopt={() => onOpenUdomi(z.id)}
-                />
+                <AnimalCard key={z.id} zivotinja={z} onOpen={onOpenDetalji} onAdopt={onOpenUdomi} />
               ))}
             </div>
           )}
@@ -365,24 +366,53 @@ export default function UdomljavanjePage() {
         {!selected ? (
           <div className="text-sm text-gray-600">Učitavanje...</div>
         ) : (
-          <div className="space-y-2 text-sm">
+          <div className="space-y-3 text-sm">
+           
+            {selected.slikaUrl ? (
+              <div className="w-full bg-gray-50 rounded-xl p-4 flex justify-center">
+                <img
+                  src={selected.slikaUrl}
+                  alt={selected.ime}
+                  className="max-h-96 w-auto object-contain"
+                />
+              </div>
+
+            ) : null}
+
             <div className="grid grid-cols-2 gap-2">
-              <div><b>Vrsta:</b> {selected.vrsta}</div>
-              <div><b>Pol:</b> {selected.pol}</div>
-              <div><b>Starost:</b> {selected.starost}</div>
-              <div><b>Status:</b> {selected.status}</div>
+              <div>
+                <b>Vrsta:</b> {selected.vrsta}
+              </div>
+              <div>
+                <b>Pol:</b> {selected.pol}
+              </div>
+              <div>
+                <b>Starost:</b> {selected.starost}
+              </div>
+              <div>
+                <b>Status:</b> {selected.status}
+              </div>
             </div>
 
-            <div><b>Lokacija:</b> {selected.lokacija}</div>
-            <div><b>Postavio:</b> {selected.korisnik.ime} {selected.korisnik.prezime}</div>
+            <div>
+              <b>Lokacija:</b> {selected.lokacija}
+            </div>
+            <div>
+              <b>Postavio:</b> {selected.korisnik.ime} {selected.korisnik.prezime}
+            </div>
 
-            <div className="pt-2">
+            <div className="pt-1">
               <b>Opis:</b>
               <div className="mt-1 whitespace-pre-wrap text-gray-700">{selected.opis}</div>
             </div>
 
-            <div className="pt-3">
-              <Button onClick={() => { setOpenDetalji(false); setOpenUdomi(true); }}>
+            <div className="pt-2">
+              <Button
+                onClick={() => {
+                  setOpenDetalji(false);
+                  setOpenUdomi(true);
+                }}
+              >
                 Udomi
               </Button>
             </div>

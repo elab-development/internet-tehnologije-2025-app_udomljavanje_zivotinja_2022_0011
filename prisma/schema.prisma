@@ -42,7 +42,10 @@ model Zivotinja {
   lokacija    String
   status      StatusZivotinje @default(AKTIVNA)
   opis        String
+  slikaUrl    String?
   postavljeno DateTime @default(now())
+  
+
 
   korisnikId  Int
   korisnik    Korisnik @relation(fields: [korisnikId], references: [id])

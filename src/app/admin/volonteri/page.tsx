@@ -56,17 +56,12 @@ export default function AdminVolonteriPage() {
     setLoading(true);
     setGreska(null);
     try {
-      const res = await apiFetch("/api/zahtevi-volontera", { method: "GET" });
-      const json = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setGreska(json?.error?.message ?? "Greška pri učitavanju.");
-        return;
-      }
-
-      setData(json?.data ?? []);
-    } catch {
-      setGreska("Greška pri učitavanju.");
+      // apiFetch vraca PODATKE (json.data), ne Response
+      const lista = await apiFetch<Zahtev[]>("/zahtevi-volontera", { method: "GET" });
+      setData(Array.isArray(lista) ? lista : []);
+    } catch (e: any) {
+      setGreska(e?.message ?? "Greška pri učitavanju.");
+      setData([]);
     } finally {
       setLoading(false);
     }
@@ -77,23 +72,16 @@ export default function AdminVolonteriPage() {
     setBusyId(id);
 
     try {
-      
-      const res = await apiFetch(`/api/zahtevi-volontera/${id}/status`, {
+      // apiFetch ce baciti error ako nije ok, pa ne radimo res.ok / res.json
+      await apiFetch(`/zahtevi-volontera/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
 
-      const json = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setGreska(json?.error?.message ?? "Greška pri izmeni statusa.");
-        return; 
-      }
-
-      
+      // lokalno osvezi UI
       setData((prev) => prev.map((z) => (z.id === id ? { ...z, status } : z)));
-    } catch {
-      setGreska("Greška pri izmeni statusa.");
+    } catch (e: any) {
+      setGreska(e?.message ?? "Greška pri izmeni statusa.");
     } finally {
       setBusyId(null);
     }
@@ -163,9 +151,7 @@ export default function AdminVolonteriPage() {
                             <span className="font-semibold text-neutral-900 leading-snug">
                               {z.korisnik.ime} {z.korisnik.prezime ?? ""}
                             </span>
-                            <span className="text-xs text-neutral-500">
-                              ID: {z.korisnik.id}
-                            </span>
+                            <span className="text-xs text-neutral-500">ID: {z.korisnik.id}</span>
                           </div>
                         </td>
 
@@ -200,9 +186,7 @@ export default function AdminVolonteriPage() {
                             className="h-11 w-[180px] rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-800 focus:outline-none disabled:opacity-60"
                             value={z.status}
                             disabled={busyId === z.id}
-                            onChange={(e) =>
-                              promeniStatus(z.id, e.target.value as Zahtev["status"])
-                            }
+                            onChange={(e) => promeniStatus(z.id, e.target.value as Zahtev["status"])}
                           >
                             {statusi.map((s) => (
                               <option key={s} value={s}>
@@ -212,9 +196,7 @@ export default function AdminVolonteriPage() {
                           </select>
 
                           {busyId === z.id && (
-                            <div className="mt-2 text-xs text-neutral-500">
-                              Menjam status...
-                            </div>
+                            <div className="mt-2 text-xs text-neutral-500">Menjam status...</div>
                           )}
                         </td>
                       </tr>
