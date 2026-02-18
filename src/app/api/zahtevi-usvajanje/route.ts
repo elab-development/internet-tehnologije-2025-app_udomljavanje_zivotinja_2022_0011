@@ -4,59 +4,51 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api";
 import { requireAuth, requireRole } from "@/lib/guard";
 
-
-// POST (UDOMITELJ/VOLONTER)
+// POST /api/zahtevi-usvajanje
 export async function POST(req: Request) {
   try {
     const auth = await requireAuth(req);
     if (auth instanceof Response) return auth;
 
-    const roleResp = requireRole(auth, ["UDOMITELJ", "VOLONTER"]);
-    if (roleResp) return roleResp;
+    // svi ulogovani mogu poslati zahtev (udomitelj/volonter/admin)
+    const forbidden = requireRole(auth, ["UDOMITELJ", "VOLONTER", "ADMIN"]);
+    if (forbidden) return forbidden;
 
     const body = await req.json().catch(() => ({}));
-    const zivotinjaId = Number(body?.zivotinjaId);
+
     const kontakt = String(body?.kontakt ?? "").trim();
     const motivacija = String(body?.motivacija ?? "").trim();
+    const zivotinjaId = Number(body?.zivotinjaId);
 
-    if (!Number.isFinite(zivotinjaId) || !kontakt || !motivacija) {
-      return fail("Nedostaju podaci (zivotinjaId, kontakt, motivacija).", 400, "VALIDATION");
+    if (!kontakt || !motivacija || !Number.isFinite(zivotinjaId)) {
+      return fail("Nedostaju obavezna polja.", 400, "VALIDATION");
     }
 
-    const zivotinja = await prisma.zivotinja.findUnique({ where: { id: zivotinjaId } });
-    if (!zivotinja) return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
-    if (zivotinja.status !== "AKTIVNA") {
-      return fail("Životinja trenutno nije dostupna za udomljavanje.", 409, "NOT_AVAILABLE");
-    }
-
-    // spreči dupliranje aktivnog zahteva
-    const already = await prisma.zahtevZaUsvajanje.findFirst({
-      where: {
-        korisnikId: auth.userId,
-        zivotinjaId,
-        status: { in: ["NA_CEKANJU", "ODOBREN"] },
-      },
+    const zivotinja = await prisma.zivotinja.findUnique({
+      where: { id: zivotinjaId },
+      select: { id: true, status: true },
     });
 
-    if (already) {
-      return fail("Već imate aktivan zahtev za ovu životinju.", 409, "ALREADY_EXISTS");
+    if (!zivotinja) return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
+
+    // opcionalno: samo AKTIVNA može da se udomi
+    if (zivotinja.status !== "AKTIVNA") {
+      return fail("Životinja trenutno nije dostupna za udomljavanje.", 400, "VALIDATION");
     }
 
     const created = await prisma.zahtevZaUsvajanje.create({
       data: {
-        korisnikId: auth.userId,
-        zivotinjaId,
         kontakt,
         motivacija,
+        korisnikId: auth.userId,
+        zivotinjaId,
         status: "NA_CEKANJU",
       },
     });
 
-    // kasnije: eksterni email API i upis u Notifikacija
-
     return ok(created, 201);
-  } catch (e) {
-    console.error("POST ZAHTEV USVAJANJE ERROR:", e);
-    return fail("Greška pri slanju zahteva.", 500, "SERVER_ERROR");
+  } catch (e: any) {
+    console.error("POST ZAHTEV USAJANJE ERROR:", e);
+    return fail("Greška na serveru.", 500, "SERVER_ERROR");
   }
 }
