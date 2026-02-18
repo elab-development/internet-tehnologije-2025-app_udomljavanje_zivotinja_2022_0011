@@ -1,3 +1,4 @@
+import MapZivotinja from "@/components/ui/MapZivotinja";
 export default function PodrziNasCiljPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -44,6 +45,10 @@ export default function PodrziNasCiljPage() {
           </p>
         </div>
       </section>
+      {/* MAPA UTICAJA */}
+      <div className="mt-12">
+        <MapZivotinja />
+      </div>
     </main>
   );
 }
