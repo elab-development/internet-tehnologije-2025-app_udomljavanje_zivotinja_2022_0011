@@ -22,6 +22,21 @@ export default function AnimalCard({
   onAdopt: (id: number) => void;
 }) {
   const isPas = zivotinja.vrsta?.toLowerCase().includes("pas");
+
+  function prikaziStatus(status?: string) {
+  const s = (status ?? "").toUpperCase();
+  const mapa: Record<string, string> = {
+    AKTIVNA: "Aktivna",
+    UDOMLJENA: "Udomljena",
+    PAUZIRANA: "Pauzirana",
+    NA_CEKANJU: "Na čekanju",
+    ODOBREN: "Odobren",
+    ODBIJEN: "Odbijen",
+    OTKAZAN: "Otkazan",
+  };
+  return mapa[s] ?? status ?? "—";
+}
+
   
 
   return (
@@ -49,8 +64,9 @@ export default function AnimalCard({
           </div>
 
           <div className="absolute right-3 top-3 rounded-full border bg-white/90 px-2 py-1 text-xs">
-            {zivotinja.status}
+            {prikaziStatus(zivotinja.status)}
           </div>
+
         </div>
 
         {/* Info */}
