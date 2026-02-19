@@ -100,6 +100,14 @@ model Notifikacija {
 
   updatedAt DateTime @updatedAt
 }
+model KontaktPoruka {
+  id        Int      @id @default(autoincrement())
+  ime       String
+  email     String
+  poruka    String
+  createdAt DateTime @default(now())
+}
+
 
 enum StatusZivotinje {
   AKTIVNA
