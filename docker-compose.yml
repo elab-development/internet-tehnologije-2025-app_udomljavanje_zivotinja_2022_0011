@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: udomime_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: udomime
+      MYSQL_USER: udomime_user
+      MYSQL_PASSWORD: udomime_pass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - udomime_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: udomime_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "mysql://udomime_user:udomime_pass@db:3306/udomime"
+      JWT_SECRET: "promeni_me_u_jako"
+      NODE_ENV: "production"
+    ports:
+      - "3000:3000"
+
+volumes:
+  udomime_mysql:
