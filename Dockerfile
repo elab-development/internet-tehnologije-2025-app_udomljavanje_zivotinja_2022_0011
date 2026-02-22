@@ -1,33 +1,23 @@
-FROM node:20-alpine AS deps
+FROM node:20-alpine AS builder
 WORKDIR /app
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
-
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
 RUN npx prisma generate
 RUN npm run build
+
 
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PRISMA_CLIENT_ENGINE_TYPE=binary
 
-RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
-
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/next.config.ts ./next.config.ts
 
 EXPOSE 3000
-
-RUN chown -R nextjs:nodejs /app
-USER nextjs
 CMD sh -c "npx prisma migrate deploy && npm run start"

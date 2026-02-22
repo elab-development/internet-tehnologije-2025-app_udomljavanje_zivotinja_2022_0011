@@ -14,6 +14,7 @@ function parseIntSafe(v: string | null) {
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
+    
 
     const status = (searchParams.get("status") ?? "").trim();
     const vrsta = (searchParams.get("vrsta") ?? "").trim();

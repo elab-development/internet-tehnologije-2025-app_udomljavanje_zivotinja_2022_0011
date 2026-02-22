@@ -1,21 +1,19 @@
-version: "3.9"
-
 services:
   db:
     image: mysql:8.0
-    container_name: udomime_db
+    container_name: resq_db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: udomime
-      MYSQL_USER: udomime_user
-      MYSQL_PASSWORD: udomime_pass
-      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: resq_collective
+      MYSQL_USER: resq_user
+      MYSQL_PASSWORD: resq_pass
+      MYSQL_ROOT_PASSWORD: resq_rootpass
     ports:
       - "3306:3306"
     volumes:
-      - udomime_mysql:/var/lib/mysql
+      - resq_mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpass"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-presq_rootpass"]
       interval: 5s
       timeout: 3s
       retries: 30
@@ -24,17 +22,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: udomime_app
+    container_name: resq_app
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: "mysql://udomime_user:udomime_pass@db:3306/udomime"
-      JWT_SECRET: "promeni_me_u_jako"
+      DATABASE_URL: "mysql://resq_user:resq_pass@db:3306/resq_collective"
+      JWT_SECRET: "resq_collective_9f8a7c6d5e4b3a2f1x9z8y7w6v5u4t3"
       NODE_ENV: "production"
     ports:
       - "3000:3000"
 
 volumes:
-  udomime_mysql:
+  resq_mysql:

@@ -1,15 +1,15 @@
 export const runtime = "nodejs";
 
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { StatusZahteva } from "@prisma/client";
 
 import { ok, fail } from "@/lib/api";
 import { requireAuth, requireRole } from "@/lib/guard";
 
-type Params = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
-
-export async function PATCH(req: Request, { params }: Params) {
+export async function PATCH(req: NextRequest, ctx: Ctx) {
   const auth = await requireAuth(req);
   if (auth instanceof Response) return auth;
 
@@ -17,7 +17,9 @@ export async function PATCH(req: Request, { params }: Params) {
   if (forbidden) return forbidden;
 
   try {
-    const id = Number(params.id);
+    const { id: idStr } = await ctx.params;
+    const id = Number(idStr);
+
     if (!Number.isFinite(id)) {
       return fail("Neispravan id zahteva.", 400, "VALIDATION");
     }
@@ -25,8 +27,13 @@ export async function PATCH(req: Request, { params }: Params) {
     const body = await req.json().catch(() => ({}));
     const status = body?.status as StatusZahteva;
 
+    const dozvoljeni: StatusZahteva[] = [
+      "NA_CEKANJU",
+      "ODOBREN",
+      "ODBIJEN",
+      "OTKAZAN",
+    ];
 
-    const dozvoljeni = [ "NA_CEKANJU", "ODOBREN", "ODBIJEN", "OTKAZAN"];
     if (!dozvoljeni.includes(status)) {
       return fail(
         "Status mora biti NA_CEKANJU, ODOBREN, ODBIJEN, OTKAZAN",
@@ -34,7 +41,6 @@ export async function PATCH(req: Request, { params }: Params) {
         "VALIDATION"
       );
     }
-
 
     const postoji = await prisma.zahtevZaUsvajanje.findUnique({
       where: { id },
