@@ -354,10 +354,9 @@ export default function ProfilPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-12 overflow-hidden rounded-xl border">
-                          <Image
+                          <img
                             src={z.zivotinja.slikaUrl || "/user.png"}
                             alt={z.zivotinja.ime}
-                            fill
                             className="object-cover"
                           />
                         </div>
@@ -407,10 +406,9 @@ export default function ProfilPage() {
                         >
                           <div className="flex items-center gap-3">
                             <div className="relative h-14 w-14 overflow-hidden rounded-xl border">
-                              <Image
+                              <img
                                 src={a.slikaUrl || "/user.png"}
                                 alt={a.ime}
-                                fill
                                 className="object-cover"
                               />
                             </div>
@@ -464,10 +462,9 @@ export default function ProfilPage() {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-center gap-3">
                               <div className="relative h-12 w-12 overflow-hidden rounded-xl border">
-                                <Image
+                                <img
                                   src={r.zivotinja.slikaUrl || "/placeholder.png"}
                                   alt={r.zivotinja.ime}
-                                  fill
                                   className="object-cover"
                                 />
                               </div>

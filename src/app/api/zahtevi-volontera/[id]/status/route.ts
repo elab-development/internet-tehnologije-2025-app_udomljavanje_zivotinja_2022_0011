@@ -26,7 +26,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     const body = await req.json().catch(() => ({}));
     const status = body?.status as StatusZahteva;
 
-    const dozvoljeni: StatusZahteva[] = ["NA_CEKANJU", "ODOBREN", "ODBIJEN", "OTKAZAN"];
+    const dozvoljeni: StatusZahteva[] = ["NA_CEKANJU", "ODOBREN", "ODBIJEN"];
     if (!dozvoljeni.includes(status)) {
       return fail("Neispravan status.", 400, "VALIDATION");
     }

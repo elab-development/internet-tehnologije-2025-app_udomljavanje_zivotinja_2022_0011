@@ -42,12 +42,16 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       );
     }
 
-    const postoji = await prisma.zahtevZaUsvajanje.findUnique({
-      where: { id },
+
+    const zahtev = await prisma.zahtevZaUsvajanje.findFirst({
+      where:
+        auth.role === "ADMIN"
+          ? { id }
+          : { id, zivotinja: { korisnikId: auth.userId } },
     });
 
-    if (!postoji) {
-      return fail("Zahtev nije pronađen.", 404, "NOT_FOUND");
+    if (!zahtev) {
+      return fail("Zahtev nije pronađen ili nemate dozvolu.", 404, "NOT_FOUND");
     }
 
     const izmenjen = await prisma.zahtevZaUsvajanje.update({

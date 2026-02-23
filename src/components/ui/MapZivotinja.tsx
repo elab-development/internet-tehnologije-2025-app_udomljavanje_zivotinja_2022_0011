@@ -20,7 +20,7 @@ export default function MapZivotinja() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fix za Leaflet ikonice u Next okruzenju (da marker ne bude "prazan")
+
   useEffect(() => {
     // @ts-ignore
     delete L.Icon.Default.prototype._getIconUrl;
@@ -39,7 +39,7 @@ export default function MapZivotinja() {
         setLoading(true);
         setError(null);
 
-        // uzmi SVE životinje (i udomljene)
+
         const res = await fetch("/api/zivotinje");
         const json = await res.json();
         const lista: Zivotinja[] = json?.data ?? [];
@@ -47,7 +47,7 @@ export default function MapZivotinja() {
         const result: MarkerItem[] = [];
 
         for (const z of lista) {
-          // geocode lokacije (tekst u koordinate)
+     
           const r = await fetch(`/api/geocode?q=${encodeURIComponent(z.lokacija)}`);
           const j = await r.json();
           const geo = j?.data as { lat: number; lon: number } | null;

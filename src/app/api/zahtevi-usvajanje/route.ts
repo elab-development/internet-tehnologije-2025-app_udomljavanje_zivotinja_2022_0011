@@ -4,13 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { ok, fail } from "@/lib/api";
 import { requireAuth, requireRole } from "@/lib/guard";
 
-// POST /api/zahtevi-usvajanje
+// POST 
 export async function POST(req: Request) {
   try {
     const auth = await requireAuth(req);
     if (auth instanceof Response) return auth;
 
-    // svi ulogovani mogu poslati zahtev (udomitelj/volonter/admin)
+  
     const forbidden = requireRole(auth, ["UDOMITELJ", "VOLONTER", "ADMIN"]);
     if (forbidden) return forbidden;
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     if (!zivotinja) return fail("Životinja nije pronađena.", 404, "NOT_FOUND");
 
-    // opcionalno: samo AKTIVNA može da se udomi
+   
     if (zivotinja.status !== "AKTIVNA") {
       return fail("Životinja trenutno nije dostupna za udomljavanje.", 400, "VALIDATION");
     }

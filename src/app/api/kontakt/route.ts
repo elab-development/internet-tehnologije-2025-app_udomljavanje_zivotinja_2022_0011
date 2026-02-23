@@ -8,7 +8,7 @@ function validanEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// POST /api/kontakt (PUBLIC) - šalje poruku
+// POST
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   }
 }
 
-// GET /api/kontakt (ADMIN) - lista poruka
+// GET 
 export async function GET(req: Request) {
   try {
     const auth = await requireAuth(req);
