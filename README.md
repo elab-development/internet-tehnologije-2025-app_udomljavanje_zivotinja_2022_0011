@@ -164,6 +164,7 @@ http://localhost:3000/api/openapi (OpenAPI JSON)
 U repozitorijumu postoji prisma/seed.ts, ali seed trenutno nije obavezan i nije aktivno korišćen u standardnom flow-u.
 
 # Deploy
+...
 
 
 ## Konfiguracija okruženja (.env)
@@ -184,3 +185,36 @@ Primer promenljivih koje aplikacija koristi:
     NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET – preset za upload slika
     SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS – konfiguracija email servisa
     NODE_ENV – runtime okruženje
+
+
+## Automatizovani testovi
+
+U projektu su implementirani automatizovani testovi korišćenjem **Vitest** alata. Testovi se izvršavaju nad posebnom MySQL test bazom koja se pokreće u Docker kontejneru (`db_test`) i ne utiče na razvojnu bazu.
+
+### Preduslovi
+- Instaliran **Docker** i **Docker Compose**
+- Instaliran **Node.js** i **npm**
+
+### Pokretanje testova
+Jedna komanda pokreće sve što je potrebno:
+- podiže test bazu (`db_test`)
+- primenjuje Prisma migracije na test bazu
+- pokreće Vitest testove
+
+    npm run test:e2e
+
+### Pokretanje samo testova
+Pokreće samo Vitest testove (koristi već pripremljenu test bazu):
+  npm test
+
+### Test baza
+Test baza se pokreće kroz docker-compose.yml servis db_test i mapirana je na port 3307.
+Korišćeni test DB connection string (primer):
+  mysql://root:resq_rootpass_test@localhost:3307/resq_collective_test
+
+### Šta testovi pokrivaju
+Testovi proveravaju ključne delove aplikacije:
+  Public ruta: GET /api/zivotinje vraća status 200 i validan JSON format
+  Autentifikacija: POST /api/zivotinje bez tokena vraća 401
+  Autorizacija: POST /api/zivotinje sa ulogom koja nije dozvoljena vraća 403
+  Kreiranje resursa: POST /api/zivotinje sa VOLONTER ulogom vraća 201
