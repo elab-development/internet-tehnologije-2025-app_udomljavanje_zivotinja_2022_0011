@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `korisnik` ADD COLUMN `datumRodjenja` DATETIME(3) NULL;
+ALTER TABLE `Korisnik` ADD COLUMN `datumRodjenja` DATETIME(3) NULL;

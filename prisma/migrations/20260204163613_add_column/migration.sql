@@ -9,17 +9,17 @@
 
 */
 -- AlterTable
-ALTER TABLE `korisnik` ADD COLUMN `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+ALTER TABLE `Korisnik` ADD COLUMN `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `notifikacija` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
+ALTER TABLE `Notifikacija` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `zahtevzausvajanje` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
+ALTER TABLE `ZahtevZaUsvajanje` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `zahtevzavolontera` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
+ALTER TABLE `ZahtevZaVolontera` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
 
 -- AlterTable
-ALTER TABLE `zivotinja` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;
+ALTER TABLE `Zivotinja` ADD COLUMN `updatedAt` DATETIME(3) NOT NULL;

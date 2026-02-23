@@ -5,5 +5,5 @@
 
 */
 -- AlterTable
-ALTER TABLE `korisnik` DROP COLUMN `uloga`,
+ALTER TABLE `Korisnik` DROP COLUMN `uloga`,
     ADD COLUMN `role` ENUM('ADMIN', 'VOLONTER', 'UDOMITELJ') NOT NULL DEFAULT 'UDOMITELJ';

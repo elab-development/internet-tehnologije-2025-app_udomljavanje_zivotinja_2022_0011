@@ -18,19 +18,34 @@ services:
       timeout: 3s
       retries: 30
 
-  app:
+  migrate:
+    image: resq_app_image
+    pull_policy: never
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: resq_app
-    restart: unless-stopped
+      args:
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+    container_name: resq_migrate
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      DATABASE_URL: "mysql://resq_user:resq_pass@db:3306/resq_collective"
-      JWT_SECRET: "resq_collective_9f8a7c6d5e4b3a2f1x9z8y7w6v5u4t3"
-      NODE_ENV: "production"
+    env_file:
+      - .env.docker
+    command: ["sh", "-c", "npx prisma generate && npx prisma migrate deploy"]
+    restart: "no"
+
+  app:
+    image: resq_app_image
+    pull_policy: never
+    container_name: resq_app
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    env_file:
+      - .env.docker
     ports:
       - "3000:3000"
 

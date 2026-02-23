@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `notifikacija` MODIFY `status` ENUM('DRAFT', 'POSLATA', 'NEUSPESNA') NOT NULL DEFAULT 'DRAFT';
+ALTER TABLE `Notifikacija` MODIFY `status` ENUM('DRAFT', 'POSLATA', 'NEUSPESNA') NOT NULL DEFAULT 'DRAFT';
 
 -- AlterTable
-ALTER TABLE `zivotinja` ADD COLUMN `slikaUrl` VARCHAR(191) NULL;
+ALTER TABLE `Zivotinja` ADD COLUMN `slikaUrl` VARCHAR(191) NULL;
