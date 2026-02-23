@@ -12,53 +12,54 @@ permissions:
 
 jobs:
   test:
-  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  services:
-    mysql:
-      image: mysql:8.0
-      env:
-        MYSQL_ROOT_PASSWORD: root
-        MYSQL_DATABASE: udomime_test
-      ports:
-        - 3306:3306
-      options: >-
-        --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
-        --health-interval=10s
-        --health-timeout=5s
-        --health-retries=10
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: udomime_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: "24"
-        cache: "npm"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
 
-    - name: Install deps
-      run: npm ci
+      - name: Install deps
+        run: npm ci
 
-    - name: Create .env.test for CI
-      run: |
-        echo "JWT_SECRET=ci_test_secret_123" > .env.test
-        echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/udomime_test" >> .env.test
+      - name: Create .env.test for CI
+        run: |
+          echo "JWT_SECRET=ci_test_secret_123" > .env.test
+          echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/udomime_test" >> .env.test
 
-    - name: Prisma generate
-      run: npx prisma generate
+      - name: Prisma generate
+        run: npx prisma generate
 
-    - name: Prisma migrate (or db push)
-      run: npx prisma db push
+      - name: Prisma db push
+        run: npx prisma db push
 
-    - name: Run tests
-      run: npm test
+      - name: Run tests
+        run: npm test
 
   docker:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,6 +85,7 @@ jobs:
     needs: docker
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+
     steps:
       - name: Trigger Render Deploy Hook
         run: curl -fsSL "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
