@@ -41,10 +41,10 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Create .env.test for CI
+      - name: Create .env for CI
         run: |
-          echo "JWT_SECRET=ci_test_secret_123" > .env.test
-          echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/udomime_test" >> .env.test
+          echo "JWT_SECRET=ci_test_secret_123" > .env
+          echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/udomime_test" >> .env
 
       - name: Prisma generate
         run: npx prisma generate
