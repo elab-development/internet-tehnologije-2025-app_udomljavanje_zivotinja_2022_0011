@@ -18,6 +18,23 @@ services:
       timeout: 3s
       retries: 30
 
+  db_test:
+    image: mysql:8.0
+    container_name: udomime_db_test
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: resq_rootpass_test
+      MYSQL_DATABASE: resq_collective_test
+    ports:
+      - "3307:3306"
+    volumes:
+      - resq_mysql_test:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   migrate:
     image: resq_app_image
     pull_policy: never
@@ -51,3 +68,4 @@ services:
 
 volumes:
   resq_mysql:
+  resq_mysql_test:
