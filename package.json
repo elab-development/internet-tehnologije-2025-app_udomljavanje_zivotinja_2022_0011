@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p $PORT",
+    "seed": "prisma db seed",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -16,6 +17,9 @@
     "prisma:test:generate": "cross-env DATABASE_URL=\"mysql://root:resq_rootpass_test@localhost:3307/resq_collective_test\" npx prisma generate",
     "prisma:test:migrate": "cross-env DATABASE_URL=\"mysql://root:resq_rootpass_test@localhost:3307/resq_collective_test\" npx prisma migrate deploy",
     "test:e2e": "npm run test:prepare && cross-env DATABASE_URL=\"mysql://root:resq_rootpass_test@localhost:3307/resq_collective_test\" JWT_SECRET=\"test_secret_only\" vitest run"
+  },
+  "prisma": {
+  "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.2",
