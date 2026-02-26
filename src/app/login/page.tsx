@@ -149,7 +149,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center px-4">
+    <main className="relative min-h-screen w-full flex items-center justify-center px-4">
       <div className="absolute inset-0 -z-10 bg-neutral-50" />
       <div className="absolute inset-0 -z-10 opacity-60 [background:radial-gradient(circle_at_20%_20%,rgba(139,92,246,0.18),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(59,130,246,0.16),transparent_40%),radial-gradient(circle_at_50%_90%,rgba(16,185,129,0.12),transparent_45%)]" />
 

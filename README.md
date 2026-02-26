@@ -164,8 +164,17 @@ http://localhost:3000/api/openapi (OpenAPI JSON)
 U repozitorijumu postoji prisma/seed.ts, ali seed trenutno nije obavezan i nije aktivno korišćen u standardnom flow-u.
 
 # Deploy
-...
+Produkcijska verzija aplikacije postavljena je na cloud infrastrukturu korišćenjem sledećih servisa:
+  Render - za hostovanje Next.js web aplikacije
+  Railway - za hostovanje MySQL baze podataka
 
+Deploy aplikacije je u potpunosti automatizovan.
+Prilikom svakog push-a na main granu:
+1. Pokreću se automatizovani testovi
+2. Gradi se Docker image aplikacije
+3. Image se objavljuje na GitHub Container Registry (GHCR)
+4. Aktivira se Render Deploy Hook
+5. Render automatski redeploy-uje aplikaciju
 
 ## Konfiguracija okruženja (.env)
 

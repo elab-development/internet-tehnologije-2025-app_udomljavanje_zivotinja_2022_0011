@@ -14,9 +14,9 @@ const MapZivotinja = dynamicImport(() => import("@/components/ui/MapZivotinja"),
 
 export default function PodrziNasCiljPage() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <main className="relative min-h-screen mx-auto max-w-6xl px-4 py-10">
       {/* POZADINSKA SLIKA */}
-      <div className="absolute inset-0 -z-10 opacity-17">
+      <div className="fixed inset-0 -z-10 opacity-17">
         <img
           src="/dogs1.jpg"
           alt="background"
